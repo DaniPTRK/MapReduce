@@ -72,7 +72,7 @@ impartite pe thread_id-ul fiecarui thread.
 Argumentul trimis catre functia reducer_function() este sub forma unui struct,
 anume struct reducer_input. Continutul acestui struct este urmatorul:
 
-```C
+```C++
 
 // Input for reducer threads.
 struct reducer_input {
