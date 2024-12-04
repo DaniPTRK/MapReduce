@@ -53,29 +53,31 @@ bool comparator(pair<string, set<int>>& pair1, pair<string, set<int>>& pair2) {
         return pair1.second.size() > pair2.second.size();
     }
 
-    // If the num of appearances is equal, check the words.
+    // If the num of appearances is equal, sort alphabetically.
     return pair1.first < pair2.first;
 }
 
 void *mapper_function(void *arg)
 {
-    // Function for map threads.
+    // Function for mapper threads.
 	struct mapper_input thread_info = *(struct mapper_input *)arg;
 
     ifstream data_file;
     string word;
     string actual_word;
 
-    // Keep track of the thread's current counter.
+    // Keeps track of the thread's current counter.
     int internal_counter;
 
-    // While there's a file inside the queue, extract it.
+    // While there's a file inside the queue, extract data from it.
     while(1) {
         pthread_mutex_lock(thread_info.mutex);
 
         if(!thread_info.file_queue->empty()) {
             data_file.open(thread_info.file_queue->front());
             thread_info.file_queue->pop();
+
+            // Increment counter.
             internal_counter = *thread_info.counter;
             (*thread_info.counter)++;
         } else {
@@ -85,14 +87,14 @@ void *mapper_function(void *arg)
 
         pthread_mutex_unlock(thread_info.mutex);
 
-        // Extract the words inside each text file.
+        // Extract the words from the text files.
         while (data_file >> word) {
             for(unsigned int i = 0; i < word.size(); i++) {
                 // Check for capital letters.
                 if(word[i] >= 'A' && word[i] <= 'Z') {
                     actual_word.push_back(word[i] + 'a' - 'A');
                 } else if(word[i] >= 'a' && word[i] <= 'z') {
-                    // Keep only the characters which are valid.
+                    // Keep only alphabetical chars.
                     actual_word.push_back(word[i]);
                 }
             }
@@ -118,10 +120,10 @@ void *reducer_function(void *arg)
     // Wait for mappers to finish their work.
     pthread_barrier_wait(thread_info.barrier);
 
-    // Map which stores & puts together the data that will be printed.
+    // Map which stores & puts together the data that will be sent to files.
     unordered_map<string, set<int>> aggr_map;
 
-    // Vector used for printing data inside output files.
+    // Vector used for sorting & printing data inside output files.
     vector<pair<string, set<int>>> aggr_list;
 
     // Internal counter for the reducer thread.
@@ -165,7 +167,6 @@ void *reducer_function(void *arg)
         for(auto it : aggr_map) {
             aggr_list.push_back({it.first, it.second});
         }
-
 
         // Sort the values.
         sort(aggr_list.begin(), aggr_list.end(), comparator);
