@@ -30,8 +30,6 @@ struct mapper_input {
 
 // Input for reducer threads.
 struct reducer_input {
-    int thread_id;
-
     // Counter which indicates the next letter that will
     // be processed.
     char *counter;
